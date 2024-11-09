@@ -1,0 +1,30 @@
+body {
+    padding: 50px;
+    font: 1em Garamond, "Lucida Grande", Helvetica, Arial, sans-serif;
+    /* make body in the middle of page */
+    margin: 0 auto;
+    width: 800px;
+}
+a {
+    color: #00b7ff;
+}
+
+/* Status colors */
+.status.connected {
+    color: green;
+}
+.status.disconnected {
+    color: red;
+}
+.status.connecting {
+    color: orange;
+}
+.status.disconnecting {
+    color: purple;
+}
+.status.uninitialized {
+    color: gray;
+}
+.status.unknown {
+    color: black;
+}
