@@ -1,8 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import { deleteCustomer } from '@/services/customers';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import Checkbox from '@mui/material/Checkbox';
 import Divider from '@mui/material/Divider';
@@ -14,22 +16,18 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
+import { Pencil as EditIcon } from '@phosphor-icons/react/dist/ssr/Pencil';
+import { Trash as DeleteIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import dayjs from 'dayjs';
 
+import type { Customer } from '@/types/customers';
+import { logger } from '@/lib/default-logger';
 import { useSelection } from '@/hooks/use-selection';
+
+// import { EditCustomerForm } from './EditCustomerForm';
 
 function noop(): void {
   // do nothing
-}
-
-export interface Customer {
-  id: string;
-  avatar: string;
-  name: string;
-  email: string;
-  address: { city: string; state: string; country: string; street: string };
-  phone: string;
-  createdAt: Date;
 }
 
 interface CustomersTableProps {
@@ -39,20 +37,42 @@ interface CustomersTableProps {
   rowsPerPage?: number;
 }
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+
 export function CustomersTable({
   count = 0,
-  rows = [],
+  rows: customers = [],
   page = 0,
   rowsPerPage = 0,
 }: CustomersTableProps): React.JSX.Element {
   const rowIds = React.useMemo(() => {
-    return rows.map((customer) => customer.id);
-  }, [rows]);
+    return customers.map((customer) => customer.id);
+  }, [customers]);
 
   const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
 
-  const selectedSome = (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < rows.length;
-  const selectedAll = rows.length > 0 && selected?.size === rows.length;
+  const selectedSome = (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < customers.length;
+  const selectedAll = customers.length > 0 && selected?.size === customers.length;
+
+  // const [selectedCustomer, setSelectedCustomer] = React.useState(null);
+  // const [isEditFormOpen, setIsEditFormOpen] = React.useState(false);
+
+  const handleDeleteCustomer = async (customerId: string) => {
+    try {
+      await deleteCustomer(customerId);
+    } catch (error) {
+      logger.error('Failed to delete customer', error);
+    }
+  };
+
+  // const handleEditClick = (customer) => {
+  //   setSelectedCustomer(customer);
+  //   setIsEditFormOpen(true);
+  // };
+
+  // const handleEditSave = async (updatedCustomer) => {
+  //   await updateCustomer(updatedCustomer);
+  // };
 
   return (
     <Card>
@@ -78,38 +98,63 @@ export function CustomersTable({
               <TableCell>Location</TableCell>
               <TableCell>Phone</TableCell>
               <TableCell>Signed Up</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => {
-              const isSelected = selected?.has(row.id);
+            {customers.map((customer) => {
+              const isSelected = selected?.has(customer.id);
 
               return (
-                <TableRow hover key={row.id} selected={isSelected}>
+                <TableRow hover key={customer.id} selected={isSelected}>
                   <TableCell padding="checkbox">
                     <Checkbox
                       checked={isSelected}
                       onChange={(event) => {
                         if (event.target.checked) {
-                          selectOne(row.id);
+                          selectOne(customer.id);
                         } else {
-                          deselectOne(row.id);
+                          deselectOne(customer.id);
                         }
                       }}
                     />
                   </TableCell>
                   <TableCell>
                     <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
-                      <Avatar src={row.avatar} />
-                      <Typography variant="subtitle2">{row.name}</Typography>
+                      <Avatar src={`${BASE_URL}/images/uploads/${customer.avatar}`} />
+                      <Typography variant="subtitle2">{customer.name}</Typography>
                     </Stack>
                   </TableCell>
-                  <TableCell>{row.email}</TableCell>
+                  <TableCell>{customer.email}</TableCell>
                   <TableCell>
-                    {row.address.city}, {row.address.state}, {row.address.country}
+                    {customer.address.street}, {customer.address.state}, {customer.address.city}
                   </TableCell>
-                  <TableCell>{row.phone}</TableCell>
-                  <TableCell>{dayjs(row.createdAt).format('MMM D, YYYY')}</TableCell>
+                  <TableCell>{customer.phone}</TableCell>
+                  <TableCell>{dayjs(customer.createdAt).format('D MMM, YY')}</TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        startIcon={<EditIcon />}
+                        size="small"
+                        color="warning"
+                        variant="contained"
+                        // onClick={() => handleEditClick(customer)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        startIcon={<DeleteIcon />}
+                        size="small"
+                        color="error"
+                        variant="contained"
+                        onClick={async () => {
+                          await handleDeleteCustomer(customer._id);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </Stack>
+                  </TableCell>
                 </TableRow>
               );
             })}

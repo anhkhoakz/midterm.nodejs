@@ -4,9 +4,10 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const { connectToDatabase } = require("./configs/database.config");
+const bodyParser = require("body-parser");
 
 const indexRouter = require("./routes/index");
-const clientsRouter = require("./routes/clients");
+const customerRouter = require("./routes/customer");
 
 const app = express();
 
@@ -19,11 +20,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 connectToDatabase();
 
 app.use("/", indexRouter);
-app.use("/clients", clientsRouter);
+app.use("/customers", customerRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

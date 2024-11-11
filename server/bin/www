@@ -7,6 +7,9 @@
 const app = require("../app");
 const debug = require("debug")("express-generator:server");
 const http = require("http");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 /**
  * Normalize a port into a number, string, or false.
