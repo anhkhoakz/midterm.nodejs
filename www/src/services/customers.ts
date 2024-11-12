@@ -21,11 +21,7 @@ export const createCustomer = async (formData: FormData): Promise<Customer> => {
   return response.data as Customer;
 };
 
-export const updateCustomer = async (id: number, customer: Customer): Promise<Customer> => {
-  const formData = new FormData();
-  (Object.keys(customer) as (keyof Customer)[]).forEach((key) => {
-    formData.append(key.toString(), customer[key] as Blob);
-  });
+export const updateCustomer = async (id: string, formData: FormData): Promise<Customer> => {
   const response = await formHttp.put(`${baseURL}/${id}`, formData);
   return response.data as Customer;
 };

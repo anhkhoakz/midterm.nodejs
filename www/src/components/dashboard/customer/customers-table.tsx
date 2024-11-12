@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { deleteCustomer } from '@/services/customers';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -21,10 +22,9 @@ import { Trash as DeleteIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import dayjs from 'dayjs';
 
 import type { Customer } from '@/types/customers';
+import { paths } from '@/paths';
 import { logger } from '@/lib/default-logger';
 import { useSelection } from '@/hooks/use-selection';
-
-// import { EditCustomerForm } from './EditCustomerForm';
 
 function noop(): void {
   // do nothing
@@ -54,9 +54,6 @@ export function CustomersTable({
   const selectedSome = (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < customers.length;
   const selectedAll = customers.length > 0 && selected?.size === customers.length;
 
-  // const [selectedCustomer, setSelectedCustomer] = React.useState(null);
-  // const [isEditFormOpen, setIsEditFormOpen] = React.useState(false);
-
   const handleDeleteCustomer = async (customerId: string) => {
     try {
       await deleteCustomer(customerId);
@@ -64,15 +61,6 @@ export function CustomersTable({
       logger.error('Failed to delete customer', error);
     }
   };
-
-  // const handleEditClick = (customer) => {
-  //   setSelectedCustomer(customer);
-  //   setIsEditFormOpen(true);
-  // };
-
-  // const handleEditSave = async (updatedCustomer) => {
-  //   await updateCustomer(updatedCustomer);
-  // };
 
   return (
     <Card>
@@ -133,13 +121,7 @@ export function CustomersTable({
                   <TableCell>{dayjs(customer.createdAt).format('D MMM, YY')}</TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={1}>
-                      <Button
-                        startIcon={<EditIcon />}
-                        size="small"
-                        color="warning"
-                        variant="contained"
-                        // onClick={() => handleEditClick(customer)}
-                      >
+                      <Button startIcon={<EditIcon />} size="small" color="warning" variant="contained">
                         Edit
                       </Button>
                       <Button
