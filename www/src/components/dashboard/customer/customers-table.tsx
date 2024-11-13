@@ -1,7 +1,4 @@
-'use client';
-
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import { deleteCustomer } from '@/services/customers';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -22,19 +19,18 @@ import { Trash as DeleteIcon } from '@phosphor-icons/react/dist/ssr/Trash';
 import dayjs from 'dayjs';
 
 import type { Customer } from '@/types/customers';
-import { paths } from '@/paths';
 import { logger } from '@/lib/default-logger';
 import { useSelection } from '@/hooks/use-selection';
 
-function noop(): void {
-  // do nothing
-}
+import EditCustomerDialog from './edit-customer-dialog';
 
 interface CustomersTableProps {
   count?: number;
   page?: number;
   rows?: Customer[];
   rowsPerPage?: number;
+  setReload: React.Dispatch<React.SetStateAction<boolean>>;
+  searchQuery: string;
 }
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
@@ -44,7 +40,12 @@ export function CustomersTable({
   rows: customers = [],
   page = 0,
   rowsPerPage = 0,
+  setReload,
+  searchQuery,
 }: CustomersTableProps): React.JSX.Element {
+  const [open, setOpen] = React.useState(false);
+  const [selectedCustomer, setSelectedCustomer] = React.useState<Customer | null>(null);
+
   const rowIds = React.useMemo(() => {
     return customers.map((customer) => customer.id);
   }, [customers]);
@@ -54,12 +55,27 @@ export function CustomersTable({
   const selectedSome = (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < customers.length;
   const selectedAll = customers.length > 0 && selected?.size === customers.length;
 
-  const handleDeleteCustomer = async (customerId: string) => {
+  const filteredCustomers = React.useMemo(() => {
+    return customers.filter((customer) => customer.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [customers, searchQuery]);
+
+  const handleDeleteCustomer = async (customerId: string): Promise<void> => {
     try {
       await deleteCustomer(customerId);
+      setReload((prev) => !prev);
     } catch (error) {
       logger.error('Failed to delete customer', error);
     }
+  };
+
+  const handleEditCustomer = (customer: Customer): void => {
+    setSelectedCustomer(customer);
+    setOpen(true);
+  };
+
+  const handleClose = (): void => {
+    setOpen(false);
+    setSelectedCustomer(null);
   };
 
   return (
@@ -72,7 +88,7 @@ export function CustomersTable({
                 <Checkbox
                   checked={selectedAll}
                   indeterminate={selectedSome}
-                  onChange={(event) => {
+                  onChange={(event): void => {
                     if (event.target.checked) {
                       selectAll();
                     } else {
@@ -90,7 +106,7 @@ export function CustomersTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {customers.map((customer) => {
+            {filteredCustomers.map((customer) => {
               const isSelected = selected?.has(customer.id);
 
               return (
@@ -98,7 +114,7 @@ export function CustomersTable({
                   <TableCell padding="checkbox">
                     <Checkbox
                       checked={isSelected}
-                      onChange={(event) => {
+                      onChange={(event): void => {
                         if (event.target.checked) {
                           selectOne(customer.id);
                         } else {
@@ -121,7 +137,15 @@ export function CustomersTable({
                   <TableCell>{dayjs(customer.createdAt).format('D MMM, YY')}</TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={1}>
-                      <Button startIcon={<EditIcon />} size="small" color="warning" variant="contained">
+                      <Button
+                        startIcon={<EditIcon />}
+                        size="small"
+                        color="warning"
+                        variant="contained"
+                        onClick={() => {
+                          handleEditCustomer(customer);
+                        }}
+                      >
                         Edit
                       </Button>
                       <Button
@@ -129,7 +153,7 @@ export function CustomersTable({
                         size="small"
                         color="error"
                         variant="contained"
-                        onClick={async () => {
+                        onClick={async (): Promise<void> => {
                           await handleDeleteCustomer(customer._id);
                         }}
                       >
@@ -147,11 +171,17 @@ export function CustomersTable({
       <TablePagination
         component="div"
         count={count}
-        onPageChange={noop}
-        onRowsPerPageChange={noop}
+        onPageChange={(_event, _newPage): void => {}}
+        onRowsPerPageChange={(_event): void => {}}
         page={page}
         rowsPerPage={rowsPerPage}
         rowsPerPageOptions={[5, 10, 25]}
+      />
+      <EditCustomerDialog
+        open={open}
+        customer={selectedCustomer}
+        onClose={handleClose}
+        onReload={() => setReload((prev) => !prev)}
       />
     </Card>
   );

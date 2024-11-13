@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-// import type { Metadata } from 'next';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCustomers } from '@/services/customers';
@@ -16,16 +15,16 @@ import { logger } from '@/lib/default-logger';
 import { CustomersFilters } from '@/components/dashboard/customer/customers-filters';
 import { CustomersTable } from '@/components/dashboard/customer/customers-table';
 
-// export const metadata = { title: `Customers | Dashboard | ${config.site.name}` } satisfies Metadata;
-
 export default function Page(): React.JSX.Element {
   const page = 0;
   const rowsPerPage = 5;
   const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [_loading, setLoading] = useState<boolean>(true);
+  const [reload, setReload] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (): Promise<void> => {
     try {
       const customersData = await getCustomers();
       setCustomers(customersData);
@@ -38,7 +37,7 @@ export default function Page(): React.JSX.Element {
 
   useEffect(() => {
     void fetchProducts();
-  }, []);
+  }, [reload]);
 
   const paginatedCustomers = applyPagination(customers, page, rowsPerPage);
 
@@ -60,12 +59,14 @@ export default function Page(): React.JSX.Element {
           </Button>
         </div>
       </Stack>
-      <CustomersFilters />
+      <CustomersFilters onSearch={setSearchQuery} />
       <CustomersTable
         count={paginatedCustomers.length}
         page={page}
         rows={paginatedCustomers}
         rowsPerPage={rowsPerPage}
+        setReload={setReload}
+        searchQuery={searchQuery}
       />
     </Stack>
   );

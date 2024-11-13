@@ -16,6 +16,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { paths } from '@/paths';
+import UploadImages from '@/components/input/upload-images';
 
 import VietnamData from './simplified_json_generated_data_vn_units_minified.json';
 
@@ -45,7 +46,7 @@ export default function AddCustomer(): React.JSX.Element {
 
   const [selectedCity, setSelectedCity] = React.useState<string | null>(null);
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: FormData): Promise<void> => {
     const formData = new FormData();
     if (data.avatar instanceof File) {
       formData.append('avatar', data.avatar);
@@ -57,11 +58,8 @@ export default function AddCustomer(): React.JSX.Element {
     formData.append('address.city', data.address.city);
     formData.append('address.state', data.address.state);
 
-    // Here you would make an API call to add the customer
-    // For now, we'll just log the data and redirect to the customers pag
     await createCustomer(formData);
 
-    // Reset the file input field
     const fileInput = document.querySelector('input[type="file"]');
     if (fileInput) {
       (fileInput as HTMLInputElement).value = '';
@@ -79,21 +77,6 @@ export default function AddCustomer(): React.JSX.Element {
           <Divider />
           <CardContent>
             <Stack spacing={2}>
-              <Controller
-                name="avatar"
-                control={control}
-                render={({ field }) => (
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        field.onChange(e.target.files[0]);
-                      }
-                    }}
-                  />
-                )}
-              />
               <Controller
                 name="name"
                 control={control}
