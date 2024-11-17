@@ -22,9 +22,13 @@ services:
         condition: on-failure
     ports:
       - "5000:5000"
+      - "5001:5001"
+      - "5002:5002"
 
   frontend:
     image: my_stack_frontend
+    environment:
+      - NEXT_PUBLIC_SERVER_URL=http://localhost/api
     ports:
       - "3000:3000"
     depends_on:

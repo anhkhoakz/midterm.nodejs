@@ -1,31 +1,57 @@
-import formHttp from '@/utils/axios';
-import http from '@/utils/axios';
+import axios from 'axios';
 
 import type { Customer } from '@/types/customers';
+import { logger } from '@/lib/default-logger';
 
-const baseURL = '/customers';
+const baseURL = process.env.NEXT_PUBLIC_SERVER_URL
+  ? `${process.env.NEXT_PUBLIC_SERVER_URL}/customers`
+  : '/api/customers';
 
 export const getCustomers = async (): Promise<Customer[]> => {
-  const response = await http.get(baseURL);
-
-  return response.data as Customer[];
+  try {
+    const response = await axios.get(baseURL);
+    return response.data as Customer[];
+  } catch (error) {
+    logger.error('Error fetching customers:', error);
+    throw error;
+  }
 };
 
 export const getCustomerById = async (id: string): Promise<Customer> => {
-  const response = await http.get(`${baseURL}/${id}`);
-  return response.data as Customer;
+  try {
+    const response = await axios.get(`${baseURL}/${id}`);
+    return response.data as Customer;
+  } catch (error) {
+    logger.error(`Error fetching customer with id ${id}:`, error);
+    throw error;
+  }
 };
 
-export const createCustomer = async (formData: FormData): Promise<Customer> => {
-  const response = await formHttp.post(baseURL, formData);
-  return response.data as Customer;
+export const createCustomer = async (data: object): Promise<Customer> => {
+  try {
+    const response = await axios.post(baseURL, data);
+    return response.data as Customer;
+  } catch (error) {
+    logger.error('Error creating customer:', error);
+    throw error;
+  }
 };
 
-export const updateCustomer = async (id: string, formData: FormData): Promise<Customer> => {
-  const response = await formHttp.put(`${baseURL}/${id}`, formData);
-  return response.data as Customer;
+export const updateCustomer = async (id: string, formData: object): Promise<Customer> => {
+  try {
+    const response = await axios.put(`${baseURL}/${id}`, formData);
+    return response.data as Customer;
+  } catch (error) {
+    logger.error(`Error updating customer with id ${id}:`, error);
+    throw error;
+  }
 };
 
 export const deleteCustomer = async (id: string): Promise<void> => {
-  await http.delete(`${baseURL}/${id}`);
+  try {
+    await axios.delete(`${baseURL}/${id}`);
+  } catch (error) {
+    logger.error(`Error deleting customer with id ${id}:`, error);
+    throw error;
+  }
 };

@@ -22,19 +22,18 @@ function EditCustomerDialog({ open, customer, onClose, onReload }: EditCustomerD
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!customer) return;
+
     const formData = new FormData(event.currentTarget);
+
     const updatedCustomer = {
       ...customer,
       name: formData.get('name') as string,
       email: formData.get('email') as string,
       phone: formData.get('phone') as string,
     };
+
     try {
-      const formDataToUpdate = new FormData();
-      formDataToUpdate.append('name', updatedCustomer.name);
-      formDataToUpdate.append('email', updatedCustomer.email);
-      formDataToUpdate.append('phone', updatedCustomer.phone);
-      await updateCustomer(customer._id, formDataToUpdate);
+      await updateCustomer(customer._id, updatedCustomer);
       onClose();
       onReload();
     } catch (error) {

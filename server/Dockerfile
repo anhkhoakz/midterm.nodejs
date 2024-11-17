@@ -9,6 +9,7 @@ RUN npm install
 COPY . .
 
 ENV NODE_ENV=production
+ENV MONGO_URI=mongodb://mongo:27017/midtermNodejs
 
 EXPOSE 5000
 

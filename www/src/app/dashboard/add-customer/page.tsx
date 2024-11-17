@@ -4,23 +4,29 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { createCustomer } from '@/services/customers';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Card, CardContent, CardHeader, FormControl, InputLabel } from '@mui/material';
-import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Divider,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { paths } from '@/paths';
+import { logger } from '@/lib/default-logger';
 
 import VietnamData from './simplified_json_generated_data_vn_units_minified.json';
 
 const schema = z.object({
-  avatar: z.instanceof(File).refine((file) => file.size > 0, 'Avatar is required'),
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
   address: z.object({
@@ -46,31 +52,29 @@ export default function AddCustomer(): React.JSX.Element {
   const [selectedCity, setSelectedCity] = React.useState<string | null>(null);
 
   const onSubmit = async (data: FormData): Promise<void> => {
-    const formData = new FormData();
-    if (data.avatar instanceof File) {
-      formData.append('avatar', data.avatar);
+    const jsonData = {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: {
+        street: data.address.street,
+        city: data.address.city,
+        state: data.address.state,
+      },
+    };
+
+    try {
+      await createCustomer(jsonData);
+      router.push(paths.dashboard.customers);
+    } catch (error) {
+      logger.error('Error creating customer:', error);
     }
-    formData.append('name', data.name);
-    formData.append('email', data.email);
-    formData.append('phone', data.phone);
-    formData.append('address.street', data.address.street);
-    formData.append('address.city', data.address.city);
-    formData.append('address.state', data.address.state);
-
-    await createCustomer(formData);
-
-    const fileInput = document.querySelector('input[type="file"]');
-    if (fileInput) {
-      (fileInput as HTMLInputElement).value = '';
-    }
-
-    router.push(paths.dashboard.customers);
   };
 
   return (
     <Stack spacing={3}>
       <Typography variant="h4">Customer</Typography>
-      <form onSubmit={handleSubmit(onSubmit)} method="post" encType="multipart/form-data">
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Card>
           <CardHeader title="Add customer" />
           <Divider />
