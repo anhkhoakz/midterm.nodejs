@@ -16,7 +16,6 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { paths } from '@/paths';
-import UploadImages from '@/components/input/upload-images';
 
 import VietnamData from './simplified_json_generated_data_vn_units_minified.json';
 
