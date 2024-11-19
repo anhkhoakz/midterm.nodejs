@@ -8,6 +8,15 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    depends_on:
+      - mongo
+
   backend:
     image: my_stack_backend
     environment:

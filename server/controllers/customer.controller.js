@@ -1,19 +1,42 @@
 const Customer = require("../models/customer");
 const uuid = require("uuid");
+const redisClient = require("../configs/redis.config");
 
 const getCustomers = async (req, res) => {
+    const cacheKey = "customers:list";
+
+    data = await redisClient.get(cacheKey);
+    if (data) {
+        console.log("Data from cache");
+        return res.status(200).json(JSON.parse(data));
+    }
+
     try {
         const clients = await Customer.find();
+        console.log("Data from database");
+        console.log(clients);
+        redisClient.set(cacheKey, JSON.stringify(clients), { EX: 3600 });
         res.status(200).json(clients);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(404).json({ message: error.message });
     }
 };
 
 const getCustomer = async (req, res) => {
+    const cacheKey = `customers:${req.params.id}`;
+
+    data = await redisClient.get(cacheKey);
+    if (data) {
+        console.log("Data from cache");
+        return res.status(200).json(JSON.parse(data));
+    }
+
     try {
-        const client = await Customer.findById(req.params.id);
-        res.status(200).json(client);
+        const clients = await Customer.findById(req.params.id);
+        console.log("Data from database");
+        // console.log(clients);
+        redisClient.set(cacheKey, JSON.stringify(clients), { EX: 3600 });
+        res.status(200).json(clients);
     } catch (error) {
         res.status(404).json({ message: error.message });
     }

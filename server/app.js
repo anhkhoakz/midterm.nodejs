@@ -4,6 +4,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const { connectToDatabase } = require("./configs/database.config");
+const redisClient = require("./configs/redis.config");
 const bodyParser = require("body-parser");
 
 const indexRouter = require("./routes/index");
@@ -24,6 +25,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 connectToDatabase();
+redisClient.connect();
 
 app.use("/", indexRouter);
 app.use("/customers", customerRouter);
