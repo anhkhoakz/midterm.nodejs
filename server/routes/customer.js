@@ -8,6 +8,7 @@ const {
     deleteCustomer,
     deleteAllCustomers,
 } = require("../controllers/customer.controller");
+const cache = require("../middlewares/cache");
 
 router.get("/", getCustomers);
 router.get("/:id", getCustomer);
