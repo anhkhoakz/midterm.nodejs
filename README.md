@@ -41,6 +41,7 @@ To get started with the CustomerManager project, follow these steps:
 1. Leave any existing Docker Swarm:
 
     ```sh
+    cd ..
     docker swarm leave -f
     ```
 
@@ -61,21 +62,9 @@ To get started with the CustomerManager project, follow these steps:
     ```sh
     docker stack deploy -c docker-compose.yml my_stack
     ```
+5. Access the application:
+    Open your browser and navigate to: http://localhost
 
-### Without Docker
-
-1. Start the backend server:
-
-    ```sh
-    cd server
-    pnpm start
-    ```
-
-2. Start the frontend client:
-    ```sh
-    cd ../www
-    pnpm start
-    ```
 
 ## Contributing
 

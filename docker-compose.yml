@@ -9,19 +9,21 @@ services:
       - app-network
 
   redis:
-    image: redis:alpine
+    image: redis:latest
     ports:
       - "6379:6379"
     networks:
       - app-network
-    depends_on:
-      - mongo
+
 
   backend:
     image: my_stack_backend
     environment:
       - MONGO_URI=mongodb://mongo:27017/mydatabase
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
+      - redis
       - mongo
     networks:
       - app-network

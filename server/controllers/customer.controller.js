@@ -49,12 +49,16 @@ const createCustomer = async (req, res) => {
             ...req.body,
         });
         await client.save();
+
+        const cacheKey = "customers:list";
+        const clients = await Customer.find();
+        redisClient.set(cacheKey, JSON.stringify(clients), { EX: 3600 });
+
         res.status(201).json(client);
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
 };
-
 const updateCustomer = async (req, res) => {
     try {
         const client = await Customer.findById(req.params.id);
@@ -62,10 +66,19 @@ const updateCustomer = async (req, res) => {
             return res.status(404).json({ message: "Customer not found" });
         }
 
-        await Customer.findOneAndUpdate({ _id: req.params.id }, req.body, {
-            new: true,
-        });
-        res.status(200).json(client);
+        const updatedClient = await Customer.findOneAndUpdate(
+            { _id: req.params.id },
+            req.body,
+            { new: true }
+        );
+
+        // Xóa bộ nhớ đệm
+        const cacheKeyList = "customers:list";
+        const cacheKeyItem = `customers:${req.params.id}`;
+        await redisClient.del(cacheKeyList);
+        await redisClient.del(cacheKeyItem);
+
+        res.status(200).json(updatedClient);
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
@@ -78,6 +91,13 @@ const deleteCustomer = async (req, res) => {
             return res.status(404).json({ message: "Customer not found" });
         }
         await Customer.findOneAndDelete({ _id: req.params.id });
+
+        // Xóa bộ nhớ đệm
+        const cacheKeyList = "customers:list";
+        const cacheKeyItem = `customers:${req.params.id}`;
+        await redisClient.del(cacheKeyList);
+        await redisClient.del(cacheKeyItem);
+
         res.status(200).json({ message: "Customer has been deleted" });
     } catch (error) {
         res.status(404).json({ message: error.message });
